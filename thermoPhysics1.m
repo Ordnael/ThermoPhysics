@@ -2,6 +2,7 @@ clear; close all; clc;
 
 tnow = datestr(now,30);
 N = 10000;
+E_limit = 1e-12;
 
 % Vectors.
 x = [0:0.001:0.02];
@@ -31,7 +32,7 @@ TT = T;
 it = 1;         % Iteration counter.
 E_act = 1;
 
-while E_act > 1e-12
+while E_act > E_limit
     % Break if iteration limit reached.
     if it > N
         STOP = 'Iteration limit reached!';
@@ -54,4 +55,44 @@ while E_act > 1e-12
     it = it + 1;
 end
 
-surf(T);
+[X,Y] = meshgrid(x,y);
+h1 = figure(1);
+contour(X,Y,T,40);
+xlabel('x, m');
+ylabel('y, m');
+zlabel('T, °C');
+colorbar;
+grid on;
+saveas(h1,[tnow '_temp_contour.fig']);
+print('-dpng',[tnow '_temp_contour']);
+
+h2 = figure(2);
+semilogy(E);
+xlabel('Number of iterations, -');
+ylabel('Maximum error, °C');
+grid on;
+saveas(h2,[tnow '_error.fig']);
+print('-dpng',[tnow '_error']);
+
+h3 = figure(3);
+plot(x, T(round(size(T,1)/2),:));
+legend(['y = ' num2str(y(round(size(T,1)/2),1)) 'm']);
+xlabel('x, m');
+ylabel('y, °C');
+saveas(h3,[tnow '_Tx.fig']);
+print('-dpng',[tnow '_Tx']);
+
+p3.IN.x = x;
+p3.IN.y = y;
+p3.IN.BCT1 = BCT1;
+p3.IN.BCT2 = BCT2;
+p3.IN.BCT3 = BCT3;
+p3.IN.BCT4 = BCT4;
+p3.IN.N = N;
+p3.IN.E_limit = E_limit;
+
+p3.OUT.T = T;
+p3.OUT.E = E;
+p3.OUT.it = it;
+
+save([tnow '_p3'], 'p3');
